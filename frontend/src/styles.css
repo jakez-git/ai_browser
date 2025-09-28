@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.app-container {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+  padding: 1.5rem;
+  gap: 1rem;
+  background: radial-gradient(circle at top, rgba(37, 69, 255, 0.15), transparent 55%),
+    radial-gradient(circle at bottom, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.65));
+}
+
+header {
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+main {
+  overflow-y: auto;
+}
+
+.chat-history {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chat-message {
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.3);
+}
+
+.chat-response {
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.chat-sources {
+  margin-top: 0.75rem;
+  padding-left: 1.25rem;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.loading {
+  text-align: center;
+  font-style: italic;
+}
+
+.placeholder {
+  text-align: center;
+  color: #94a3b8;
+}
+
+.chat-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chat-input textarea {
+  min-height: 120px;
+  resize: vertical;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.6);
+  color: inherit;
+  font-size: 1rem;
+}
+
+.chat-input button {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #6366f1, #22d3ee);
+  border: none;
+  color: #0f172a;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chat-input button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.25);
+}
+
+.chat-input button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+@media (min-width: 768px) {
+  .app-container {
+    padding: 2.5rem 4rem;
+  }
+}
