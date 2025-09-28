@@ -5,39 +5,43 @@
 > 4. Optimize for LLM context efficiency
 > 5. Human readability is secondary
 
-# Requirements: Open WebUI Agent Platform Enhancements
+# Requirements: Local Chat UI with Live Knowledge Base
 
 ## Overview
-This document captures functional and non-functional requirements for delivering agent delegation, tab grouping, file system integration, and branding customization features for Open WebUI.
+This document captures functional and non-functional requirements for delivering a local-first chat interface backed by a continuously updating knowledge base sourced from a watched directory tree.
 
 ## Functional Requirements
-- **Agent Delegation Pipeline**
-  - Provide pipe functions to spawn subtasks and orchestrate multi-agent workflows.
-  - Enable status tracking, cancellation, and result aggregation per subtask.
-- **Tab Grouping & Isolation**
-  - Investigate Chromium and Firefox tab grouping APIs.
-  - Prototype isolation of agent contexts using tab groups or extension-managed windows.
-- **Local File Integration**
-  - Deliver plugins exposing controlled read/write access with explicit permission prompts.
-  - Log all file operations and support revocation of granted permissions.
-- **Branding & Customization**
-  - Support theme packages (color palette, typography, logo).
-  - Establish configuration surfaces for SaaS packaging (white-label options).
+- **Chat UI**
+  - Provide a responsive web UI for conversing with a local/free LLM.
+  - Support conversation history, context resets, and export of chat transcripts.
+- **Knowledge Base Ingestion**
+  - Recursively index a designated root folder (files and subfolders) with configurable filters.
+  - Detect filesystem changes (create/update/delete) and refresh embeddings immediately without downtime.
+  - Handle large text transcripts and binary media by invoking transcription pipelines when available.
+- **Retrieval & Reasoning**
+  - Implement retrieval-augmented generation (RAG) or superior alternative to ground LLM responses in indexed content.
+  - Surface citations linking responses to source files and timestamps.
+- **Content Management**
+  - Expose dashboards or logs summarizing ingestion status, errors, and recent updates.
+  - Provide manual reindex triggers and safe shutdown routines.
 
 ## Non-Functional Requirements
-- **Security & Auditability**: Sandbox file access operations, enforce least privilege, and log all actions.
-- **Documentation**: Maintain installation guides, API references, and customization walkthroughs.
-- **Testing**: Adopt TDD with unit, integration, and e2e coverage for critical flows.
-- **Extensibility**: Architect features with modular surfaces for future agent models and UI integrations.
+- **Local-First Operation**: Run entirely on local hardware (Intel i9-12900, 64 GB RAM, RTX 3060) or free services.
+- **Low Latency Updates**: Target sub-minute propagation from file change to retrievable content.
+- **Observability**: Provide metrics/logs for ingestion latency, model inference, and storage utilization.
+- **Privacy**: Ensure no data leaves the local environment without explicit configuration.
+- **Maintainability**: Modularize components (UI, ingestion, embeddings, storage) for TDD coverage and swapping models.
 
 ## Open Questions
-- What is the target browser support matrix for tab grouping (Chrome-only vs. cross-browser)?
-- How will authentication/authorization be enforced for file access plugins in multi-user setups?
-- Which branding assets need to be parameterized for SaaS distribution (emails, domains, legal links)?
+- Which LLM(s) will be used initially (e.g., GGUF models via llama.cpp, LoRA fine-tunes, or remote free APIs)?
+- Which embedding model balances accuracy with GPU/CPU performance for large transcript corpora?
+- How will video ingestion be handled (pre-existing transcripts vs. automated transcription tooling)?
+- Do we require user authentication for the chat UI within a local network environment?
 
 ## Backlog Snapshot
-- Establish baseline plugin scaffolding with TDD harness.
-- Prototype agent delegation orchestrator using mocked agents.
-- Evaluate browser extension APIs for dynamic tab grouping.
-- Define security review checklist for file integration.
-- Draft theming guide aligned with Open WebUI component library.
+- Evaluate local LLM runtimes (llama.cpp, text-generation-webui, vLLM) for chat responsiveness.
+- Implement filesystem watcher service with debounce and batching controls.
+- Build ingestion pipeline with chunking, metadata extraction, and embedding storage.
+- Create retrieval service exposing query API with streaming citations.
+- Prototype chat frontend with conversation management and retrieval display.
+- Integrate optional transcription workflow for video/audio files.

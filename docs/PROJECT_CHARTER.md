@@ -5,34 +5,34 @@
 > 4. Optimize for LLM context efficiency
 > 5. Human readability is secondary
 
-# Project Charter: Open WebUI Agent Platform Enhancements
+# Project Charter: Local Chat UI with Live Knowledge Base
 
 ## Purpose
-Deliver production-ready extensions for Open WebUI that enable agent delegation, secure task execution, browser tab isolation, and SaaS-ready branding customization.
+Deliver a locally runnable chat interface to an LLM that leverages a continuously updating knowledge base sourced from a watched directory tree.
 
 ## Goals
-- Establish a modular framework for agent delegation and workflow orchestration.
-- Provide tab grouping and isolation primitives leveraging browser extension APIs.
-- Ship secure local file access plugins with auditable permission boundaries.
-- Enable theme, branding, and packaging customization for commercial deployments.
+- Provide a responsive chat UI capable of querying a local or freely hosted LLM.
+- Maintain a live knowledge base that ingests folder contents recursively and refreshes without interrupting chat service.
+- Support ingestion of transcripts, documents, and media (via transcription) with automated metadata capture.
+- Evaluate RAG alternatives for living-document integration and adopt the highest-performing approach.
 
 ## Success Criteria
-- Demonstrable prototypes for delegation, tab grouping, and sandboxed file access within 4 weeks.
-- Documentation aligned with governance standards covering installation, configuration, and extension APIs.
-- Security review of file access plugins with logging and revocation support.
-- Trello board maintained with up-to-date status for all major workstreams.
+- Usable chat interface operating against a local/free LLM with knowledge retrieval in under 4 weeks.
+- Automated indexing pipeline detects file system changes and updates retrieval store with no downtime.
+- Documentation aligned with governance standards covering installation, configuration, and knowledge base maintenance.
+- Progress tracked via repository artifacts (`docs/ROADMAP.md`, `docs/backlog.md`, status notes).
 
 ## Roles & Responsibilities
 - **Cascade** (you): Primary implementation, documentation, and integration agent.
-- **Stakeholders**: Product leadership, security review team, UI/UX designers.
-- **External Systems**: Trello board `open-webui-product-development`, GitHub repository hosted under organization account.
+- **Stakeholders**: Local operators, knowledge curators, and QA reviewers.
+- **External Systems**: Local directory tree on `z:/`, optional free/open-source model repositories.
 
 ## Constraints
 - Follow TDD workflow with tests accompanying all code changes.
-- Prioritize security, auditability, and sandboxing for any automation capabilities.
-- Align with Open WebUI extension architecture and browser extension policies.
+- Prioritize data privacy, filesystem safety, and auditable content ingestion.
+- Operate entirely on local or free resources unless explicitly approved.
 
 ## Risks & Mitigations
-- **Integration Complexity**: Mitigate via modular design and incremental prototypes.
-- **Security Gaps**: Conduct threat modeling and implement logging + permission gates early.
-- **Scope Creep**: Use Trello board to manage backlog and freeze additional scope during milestone execution.
+- **Indexing Latency**: Employ filesystem watchers and incremental embedding updates; cache results across sessions.
+- **Model Performance**: Benchmark multiple local/free models; maintain abstraction layer for model swapping.
+- **Content Volume**: Implement chunking, batching, and archiving strategies to handle large transcript/video libraries.

@@ -5,79 +5,64 @@
 > 4. Optimize for LLM context efficiency
 > 5. Human readability is secondary
 
-# Design: Open WebUI Agent Platform Enhancements
+# Design: Local Chat UI with Live Knowledge Base
 
 ## Architecture Overview
-The solution consists of modular components enabling agent orchestration, browser isolation, secure file access, and branding customization.
+The solution consists of modular components enabling a local chat interface backed by a live knowledge base that updates as files change.
 
 ```mermaid
-diagram LR
-    subgraph AgentOrchestration
-        Controller[Delegation Controller]
-        Pipes[Pipe Function Registry]
-        Workers[Agent Workers]
-        Controller --> Pipes
-        Pipes --> Workers
-    end
+flowchart LR
+    Watcher[Filesystem Watcher]
+    Ingest[Ingestion Orchestrator]
+    Chunker[Chunker & Metadata Extractor]
+    Embedder[Embedding Service]
+    Store[(Vector + Document Store)]
+    Retriever[Retriever API]
+    LLMRuntime[LLM Runtime]
+    ChatUI[Chat UI]
+    Monitor[Monitoring & Logs]
 
-    subgraph BrowserIntegration
-        Extension[Browser Extension]
-        TabGroups[Tab Group Manager]
-        Isolation[Context Isolation Service]
-        Extension --> TabGroups
-        TabGroups --> Isolation
-    end
-
-    subgraph FileAccess
-        Plugin[File Access Plugin]
-        Sandbox[Permission Sandbox]
-        Audit[Audit Logger]
-        Plugin --> Sandbox
-        Sandbox --> Audit
-    end
-
-    subgraph Branding
-        ThemeEngine[Theme Engine]
-        Assets[Brand Assets]
-        Config[Distribution Config]
-        ThemeEngine --> Assets
-        ThemeEngine --> Config
-    end
-
-    Controller -- Status Updates --> Extension
-    Workers -- Results --> Controller
-    Audit -- Logs --> Controller
-    Config -- UI Settings --> Extension
+    Watcher -->|File events| Ingest
+    Ingest --> Chunker
+    Chunker --> Embedder
+    Embedder --> Store
+    Store --> Retriever
+    Retriever --> LLMRuntime
+    LLMRuntime --> ChatUI
+    ChatUI -->|User prompts| LLMRuntime
+    Store --> Monitor
+    Ingest --> Monitor
 ```
 
 ## Component Descriptions
-- **Delegation Controller**: Manages agent task queues, pipe invocations, and subtask lifecycle.
-- **Pipe Function Registry**: Catalog of actionable functions enabling agent-to-agent delegation and workflow composition.
-- **Agent Workers**: Individual agent instances, each with model configuration and task-specific context isolation.
-- **Browser Extension**: Interface layer providing tab grouping, UI enhancements, and action buttons via the Action Functions API.
-- **Tab Group Manager**: Coordinates browser tab grouping to maintain separate execution contexts per agent or workflow.
-- **Context Isolation Service**: Ensures data boundaries between tab groups and orchestrates cleanup on task completion.
-- **File Access Plugin**: Mediates local file IO requests from agents through sandboxed interfaces.
-- **Permission Sandbox**: Enforces least-privilege access, explicit user approval, and revocation flows.
-- **Audit Logger**: Captures traceable records of all file operations and delegation actions.
-- **Theme Engine**: Applies branding packages across UI surfaces, supporting multi-tenant SaaS customizations.
-- **Brand Assets**: Structured storage for logos, colors, typography, and legal content.
-- **Distribution Config**: Build-time and runtime toggles for packaging, deployment, and white-label options.
+- **Filesystem Watcher**: Observes configured root folder for create/update/delete events using OS-native APIs (e.g., `watchdog`).
+- **Ingestion Orchestrator**: Coordinates batching, debouncing, and prioritization of file processing tasks.
+- **Chunker & Metadata Extractor**: Splits documents into retrieval-friendly chunks, captures metadata (path, timestamps, tags), and handles transcript/video preprocessing.
+- **Embedding Service**: Generates embeddings using local GPU/CPU-friendly models; supports model hot-swapping.
+- **Vector + Document Store**: Persists embeddings and raw references (e.g., SQLite/duckdb + FAISS/Qdrant).
+- **Retriever API**: Serves retrieval queries with filter support and returns citations for the chat UI.
+- **LLM Runtime**: Hosts chosen local/free LLM (e.g., llama.cpp, text-generation-webui, or OpenAI-compatible adapter).
+- **Chat UI**: Presents conversational interface, streaming responses, citation display, and knowledge refresh indicators.
+- **Monitoring & Logs**: Aggregates ingestion status, errors, and performance metrics for operators.
 
 ## Data Flows
-1. Delegation requests originate from the main agent, triggering pipe functions that spawn subtasks via the Delegation Controller.
-2. Browser UI communicates with the Delegation Controller to present interactive buttons and status indicators through Action Functions.
-3. Tab Group Manager groups browser tabs per workflow, leveraging extension APIs to maintain isolation and cleanup.
-4. File Access Plugin receives sandboxed requests, verifies permissions within the Permission Sandbox, executes operations, and writes audit logs.
-5. Theme Engine applies configuration-specified branding assets across UI components, ensuring consistent presentation.
+1. Filesystem watcher emits events for changed files and enqueues them for ingestion.
+2. Ingestion orchestrator debounces rapid updates, extracts content (including optional transcription), and chunks documents.
+3. Embedding service encodes chunks and writes results to the vector/document store with metadata.
+4. Chat UI sends user prompts to the retriever, which fetches relevant chunks and streams them to the LLM runtime.
+5. LLM runtime generates grounded responses, returning citations for display in the chat UI.
+6. Monitoring surface displays ingestion throughput, indexing errors, and storage growth.
 
 ## Technology Considerations
-- **Agent Runtime**: Extend Open WebUI plugin system to register delegation pipes and worker pools.
-- **Browser Extension**: Target Chromium extension APIs first; assess Firefox compatibility during feasibility study.
-- **File Access**: Use OS-native sandboxing mechanisms where possible (e.g., File System Access API) with additional application-level guards.
-- **Branding**: Implement theming via CSS variables and modular asset packages.
+- **LLM Hosting**: Prioritize llama.cpp-compatible GGUF models using the RTX 3060 GPU; evaluate vLLM/text-generation-webui as alternatives.
+- **Embeddings**: Consider `text-embedding-3-small` equivalents via open models (e.g., `all-MiniLM-L12-v2` with sentence-transformers) optimized for CPU/GPU balance.
+- **Vector Store**: Use local-first stores (FAISS, Qdrant, Chroma) with incremental update support.
+- **Watcher**: Leverage Python `watchdog` or Rust `notify` for cross-platform filesystem monitoring.
+- **Transcription**: Integrate Whisper.cpp or faster-whisper for local speech-to-text when ingesting video/audio.
+- **Chat UI**: Implement with React/Vite or similar, communicating with backend via WebSocket/REST streaming APIs.
 
 ## Deployment Model
-- Core application packaged as containerized service with plugin registration.
-- Browser extension distributed via Chrome Web Store (initially) with staged rollout to other browsers.
-- File access plugin configurable per deployment, with environment-specific permission manifests.
+- Backend services orchestrated via Python (FastAPI) or Rust/Node servers, packaged with local runtime scripts.
+- Chat UI served locally (e.g., Vite dev server / production build) with reverse proxy for API endpoints.
+- Vector store and embedding artifacts stored on local disk or NAS (`z:/`), with scheduled backups.
+- Optional GPU acceleration enabled through CUDA for both LLM and transcription workloads.
